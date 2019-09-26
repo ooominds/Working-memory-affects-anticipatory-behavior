@@ -1,0 +1,99 @@
+#The data and R code necessary to reproduce the main model fits from Medimorec, S., Milin, P., & Divjak, D. (in press). Working memory affects anticipatory behavior during implicit pattern learning. Psychological Research. https://doi.org/10.1007/s00426-019-01251-w
+#Dataset available at https://doi.org/10.25500/00000379
+
+library(readxl)
+X426_2019_1251_MOESM2_ESM <- read_excel("426_2019_1251_MOESM2_ESM.xlsx")
+View(X426_2019_1251_MOESM2_ESM)
+
+saveRDS(X426_2019_1251_MOESM2_ESM, file = "X426_2019_1251_MOESM2_ESM.rds")
+
+SRT = readRDS('X426_2019_1251_MOESM2_ESM.rds')
+
+require(car)
+require(jtools)
+
+###ANTICIPATIONS, LEARNING BLOCKS (1-4)
+LEARNING = SRT[SRT$BLOCK < '5', ]#learning blocks
+LEARNING$BLOCK=as.factor(LEARNING$BLOCK)
+LEARNING$ANTICIPATIONS=as.factor(LEARNING$ANTICIPATIONS)
+LEARNING$CORRECT_ANTICIPATIONS=as.factor(LEARNING$CORRECT_ANTICIPATIONS)
+
+###INTERACTON MODEL
+print(summary(ANT.LEARN <-glmer(ANTICIPATIONS ~
+                                  BLOCK*WMC+(1|PARTICIPANT),
+                                data=LEARNING,family = binomial,
+                                control=glmerControl(optimizer='bobyqa'))),cor=FALSE) #
+Anova(ANT.LEARN)
+
+probe_interaction(ANT.LEARN, 
+                  pred = WMC, 
+                  modx = BLOCK, 
+                  cond.int = TRUE,
+                  interval = FALSE,  jnplot = TRUE, color.class = "Greys")
+
+###CORRECT ANTICIPATIONS, LEARNING BLOCKS (1-4)
+
+###NO-INTERACTION MODEL
+print(summary(ACC.LEARN<-glmer(CORRECT_ANTICIPATIONS ~
+                                 BLOCK+WMC+(1|PARTICIPANT),
+                               data=LEARNING,family = binomial,
+                               control=glmerControl(optimizer='bobyqa'))),cor=FALSE) #
+Anova(ACC.LEARN)
+
+####ANTICIPATIONS, INTERFERENCE (BLOCK 4 vs. BLOCK 5)
+INTERFERENCE = SRT[SRT$BLOCK=='4'|SRTdata$BLOCK=='5',]
+INTERFERENCE$BLOCK=as.factor(INTERFERENCE$BLOCK)
+INTERFERENCE$ANTICIPATIONS=as.factor(INTERFERENCE$ANTICIPATIONS)
+INTERFERENCE$CORRECT_ANTICIPATIONS=as.factor(INTERFERENCE$CORRECT_ANTICIPATIONS)
+
+###INTERACTION MODEL
+print(summary(ANT.INT <-glmer(ANTICIPATIONS ~
+                                BLOCK*WMC+(1|PARTICIPANT),
+                              data=INTERFERENCE, family = binomial,
+                              control=glmerControl(optimizer='bobyqa'))), cor=FALSE)
+Anova(ANT.INT)
+
+probe_interaction(ANT.INT, 
+                  pred = WMC, 
+                  modx = BLOCK, 
+                  cond.int = TRUE,
+                  interval = FALSE,  jnplot = TRUE, color.class = "Greys")
+
+###CORRECT ANTICIPATIONS, INTERFERENCE (BLOCK 4 vs. BLOCK 5)
+
+###NO-NTERACTION MODEL
+print(summary(ACC.INT <-glmer(CORRECT_ANTICIPATIONS ~
+                                     BLOCK+WMC+(1|PARTICIPANT),
+                                   data=INTERFERENCE, family = binomial,
+                                   control=glmerControl(optimizer='bobyqa'))), cor=FALSE)
+Anova(ACC.INT)
+
+###ANTICIPATIONS, RECOVERY (BLOCK 5 vs. BLOCK 6)
+RECOVERY = SRT[SRT$BLOCK>'4',]
+RECOVERY$BLOCK=as.factor(RECOVERY$BLOCK)
+RECOVERY$ANTICIPATIONS=as.factor(RECOVERY$ANTICIPATIONS)
+RECOVERY$CORRECT_ANTICIPATIONS=as.factor(RECOVERY$CORRECT_ANTICIPATIONS)
+
+###INTERACTION MODEL
+print(summary(ANT.REC <-glmer(ANTICIPATIONS ~
+                                     BLOCK*WMC+(1|PARTICIPANT),
+                                   data=RECOVERY, family = binomial,
+                                   control=glmerControl(optimizer='bobyqa'))), cor=FALSE)
+Anova(ANT.REC)
+
+probe_interaction(ANT.REC, 
+                  pred = WMC, 
+                  modx = BLOCK, 
+                  cond.int = TRUE,
+                  interval = FALSE,  jnplot = TRUE, color.class = "Greys")
+
+###CORRECT ANTICIPATIONS, RECOVERY (BLOCK 5 vs. BLOCK 6)
+
+####NO-INTERACTION MODEL
+print(summary(ACC.REC <-glmer(CORRECT_ANTICIPATIONS ~
+                                BLOCK+WMC+(1|PARTICIPANT),
+                              data=RECOVERY, family = binomial,
+                              control=glmerControl(optimizer='bobyqa'))), cor=FALSE)
+Anova(ACC.REC)
+
+###End
